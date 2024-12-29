@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: scan-deduplicator-cert
+  namespace: scan-deduplicator
+spec:
+  secretName: scan-deduplicator-cert
+  dnsNames:
+  - scan-deduplicator-validator.scan-deduplicator.svc.cluster.local
+  - scan-deduplicator-validator.scan-deduplicator.svc
+  - scan-deduplicator-validator.scan-deduplicator
+  issuerRef:
+    name: scan-deduplicator-ca-issuer

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scan-deduplicator-validator
+  namespace: scan-deduplicator
+  labels:
+    app: scan-deduplicator-validator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scan-deduplicator-validator
+  template:
+    metadata:
+      labels:
+        app: scan-deduplicator-validator
+    spec:
+      containers:
+        - name: scan-deduplicator-validator
+          image: docker.io/j12934/scan-deduplicator:latest
+          imagePullPolicy: Always
+          command:
+            - /scan-deduplicator
+            - -tls-cert-file=/etc/webhook/certs/tls.crt
+            - -tls-key-file=/etc/webhook/certs/tls.key
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: scan-deduplicator-cert

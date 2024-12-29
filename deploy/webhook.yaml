@@ -1,0 +1,22 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: scan-deduplicator-validator
+  annotations:
+    cert-manager.io/inject-ca-from: scan-deduplicator/scan-deduplicator-cert
+webhooks:
+- name: scan-deduplicator.securecodebox.io
+  admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: scan-deduplicator-validator
+      namespace: scan-deduplicator
+      path: /validate
+      port: 443
+  rules:
+    - operations: [ "CREATE" ]
+      apiGroups: ["execution.securecodebox.io"]
+      apiVersions: ["v1"]
+      resources: ["scans"]
+  sideEffects: None
