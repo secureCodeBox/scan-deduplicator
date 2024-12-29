@@ -1,6 +1,6 @@
 # Scan Deduplicator for secureCodeBox 
 
-> WARN: This is an highly unstable experiment at the momemt.
+> WARN: This is a highly unstable experiment at the momemt.
 
 Deduplicates scans which were already executed too recently.
 
