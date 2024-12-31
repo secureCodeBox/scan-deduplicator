@@ -27,9 +27,8 @@ type scanDeduplicatorValidator struct {
 }
 
 func (v *scanDeduplicatorValidator) Validate(_ context.Context, _ *kwhmodel.AdmissionReview, obj metav1.Object) (*kwhvalidating.ValidatorResult, error) {
-	scan, ok := obj.(*executionv1.Scan)
-
 	v.logger.Infof("Validating Scan.")
+	scan, ok := obj.(*executionv1.Scan)
 
 	if !ok {
 		return nil, fmt.Errorf("not an scan")
@@ -56,7 +55,17 @@ func (v *scanDeduplicatorValidator) Validate(_ context.Context, _ *kwhmodel.Admi
 
 	if lastExecution, ok := recentHashes[hash]; ok {
 		now := time.Now()
-		threshhold := thresholds.GetThreshholdForScan(*scan)
+		threshhold, err := thresholds.GetThreshholdForScan(*scan)
+
+		if err != nil {
+			v.logger.Errorf("Failed to get threshold for scan!", err)
+			return &kwhvalidating.ValidatorResult{
+				Valid:    true,
+				Message:  fmt.Sprintf("Failed to check for duplicated scan. Failed to get threshold: %s", err),
+				Warnings: []string{"Failed to get threshold.", "Deduplication wasn't performed."},
+			}, err
+		}
+
 		if lastExecution.Before(now.Add(-threshhold)) {
 			v.logger.Infof("Scan was executed before (%v ago), but it was longer than %v. Starting it normally.", now.Sub(lastExecution), threshhold)
 			recentHashes[hash] = now

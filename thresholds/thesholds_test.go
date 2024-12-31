@@ -10,29 +10,55 @@ import (
 )
 
 func TestGetThreshholdForScan(t *testing.T) {
-	t.Run("returns zero threshold for scans without matching labels", func(t *testing.T) {
+	t.Run("returns zero threshold for scans without deduplication annotation", func(t *testing.T) {
 		scan := executionv1.Scan{
 			ObjectMeta: metav1.ObjectMeta{
-				Labels: map[string]string{
-					"foo": "bar",
+				Annotations: map[string]string{
+					"irrelevant annotation": "...",
 				},
 			},
 		}
-		threshold := GetThreshholdForScan(scan)
+		threshold, err := GetThreshholdForScan(scan)
+		assert.Nil(t, err)
 		assert.Equal(t, 0*time.Second, threshold)
 	})
 
-	t.Run("returns matchign thresholds for scnas with matching rules threshold for scans without matching labels", func(t *testing.T) {
+	t.Run("returns parsed threshold for scans with matching annotation", func(t *testing.T) {
 		scan := executionv1.Scan{
 			ObjectMeta: metav1.ObjectMeta{
-				Labels: map[string]string{
-					"securecodebox.io/hook":                     "cascading-scans",
-					"cascading.securecodebox.io/cascading-rule": "nmap-portscan",
-					"foo": "bar",
+				Annotations: map[string]string{
+					"scan-deduplicator.securecodebox.io/min-time-interval": "24h",
 				},
 			},
 		}
-		threshold := GetThreshholdForScan(scan)
-		assert.Equal(t, 4*time.Hour, threshold)
+		threshold, err := GetThreshholdForScan(scan)
+		assert.Nil(t, err)
+		assert.Equal(t, 24*time.Hour, threshold)
+	})
+
+	t.Run("returns an error if the threshold is wrongly formatted", func(t *testing.T) {
+		scan := executionv1.Scan{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					"scan-deduplicator.securecodebox.io/min-time-interval": "invalid-time-format",
+				},
+			},
+		}
+		threshold, err := GetThreshholdForScan(scan)
+		assert.EqualError(t, err, "error parsing duration: time: invalid duration \"invalid-time-format\"")
+		assert.Equal(t, 0*time.Second, threshold)
+	})
+
+	t.Run("returns an error if the threshold is negative", func(t *testing.T) {
+		scan := executionv1.Scan{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					"scan-deduplicator.securecodebox.io/min-time-interval": "-24h",
+				},
+			},
+		}
+		threshold, err := GetThreshholdForScan(scan)
+		assert.EqualError(t, err, "threshold must be a positive duration")
+		assert.Equal(t, 0*time.Second, threshold)
 	})
 }

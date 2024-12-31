@@ -1,52 +1,26 @@
 package thresholds
 
 import (
-	"math"
+	"fmt"
 	"time"
 
 	executionv1 "github.com/secureCodeBox/secureCodeBox/operator/apis/execution/v1"
 )
 
-type ThreshholdRule struct {
-	MatchLabels map[string]string
-	Threshold   time.Duration
-}
-
-var rules []ThreshholdRule = []ThreshholdRule{
-	// default fallback, no limitation
-	{
-		MatchLabels: map[string]string{},
-		Threshold:   0 * time.Second,
-	},
-	{
-		MatchLabels: map[string]string{
-			"securecodebox.io/hook":                     "cascading-scans",
-			"cascading.securecodebox.io/cascading-rule": "nmap-portscan",
-		},
-		Threshold: 4 * time.Hour,
-	},
-}
-
-func GetThreshholdForScan(scan executionv1.Scan) time.Duration {
-	highestMatchingThreshold := time.Duration(math.MinInt64)
-	for _, rule := range rules {
-		if isMapSubset(scan.Labels, rule.MatchLabels) {
-			if highestMatchingThreshold < rule.Threshold {
-				highestMatchingThreshold = rule.Threshold
-			}
-		}
+func GetThreshholdForScan(scan executionv1.Scan) (time.Duration, error) {
+	thresholdStr, ok := scan.Annotations["scan-deduplicator.securecodebox.io/min-time-interval"]
+	if !ok {
+		return 0 * time.Second, nil
 	}
-	return highestMatchingThreshold
-}
 
-func isMapSubset[K, V comparable](m, sub map[K]V) bool {
-	if len(sub) > len(m) {
-		return false
+	threshold, err := time.ParseDuration(thresholdStr)
+	if err != nil {
+		return 0, fmt.Errorf("error parsing duration: %w", err)
 	}
-	for k, vsub := range sub {
-		if vm, found := m[k]; !found || vm != vsub {
-			return false
-		}
+
+	if threshold < 0 {
+		return 0, fmt.Errorf("threshold must be a positive duration")
 	}
-	return true
+
+	return threshold, nil
 }
