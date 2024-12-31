@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/secureCodeBox/scan-deduplicator/thresholds"
 	executionv1 "github.com/secureCodeBox/secureCodeBox/operator/apis/execution/v1"
 	"github.com/sirupsen/logrus"
 	kwhhttp "github.com/slok/kubewebhook/v2/pkg/http"
@@ -55,7 +56,7 @@ func (v *scanDeduplicatorValidator) Validate(_ context.Context, _ *kwhmodel.Admi
 
 	if lastExecution, ok := recentHashes[hash]; ok {
 		now := time.Now()
-		threshhold := 24 * time.Hour
+		threshhold := thresholds.GetThreshholdForScan(*scan)
 		if lastExecution.Before(now.Add(-threshhold)) {
 			v.logger.Infof("Scan was executed before (%v ago), but it was longer than %v. Starting it normally.", now.Sub(lastExecution), threshhold)
 			recentHashes[hash] = now
@@ -70,7 +71,6 @@ func (v *scanDeduplicatorValidator) Validate(_ context.Context, _ *kwhmodel.Admi
 				Message: fmt.Sprintf("it's last execution was too recent: %vago. Required min. threshold: %v", now.Sub(lastExecution), threshhold),
 			}, nil
 		}
-
 	} else {
 		recentHashes[hash] = time.Now()
 		v.logger.Infof("Scan %s/%s(%d) hasn't been executed recently, it will be started normally.", scan.Namespace, scan.Name, hash)
