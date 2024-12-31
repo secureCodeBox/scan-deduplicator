@@ -28,9 +28,9 @@ var rules []ThreshholdRule = []ThreshholdRule{
 }
 
 func GetThreshholdForScan(scan executionv1.Scan) time.Duration {
-	highestMatchingThreshold := time.Duration(math.MaxInt64)
+	highestMatchingThreshold := time.Duration(math.MinInt64)
 	for _, rule := range rules {
-		if isMapSubset(rule.MatchLabels, scan.Labels) {
+		if isMapSubset(scan.Labels, rule.MatchLabels) {
 			if highestMatchingThreshold < rule.Threshold {
 				highestMatchingThreshold = rule.Threshold
 			}
