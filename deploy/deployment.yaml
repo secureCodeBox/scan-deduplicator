@@ -23,6 +23,13 @@ spec:
             - /scan-deduplicator
             - -tls-cert-file=/etc/webhook/certs/tls.crt
             - -tls-key-file=/etc/webhook/certs/tls.key
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "128Mi"
+              cpu: "10m"
           volumeMounts:
             - name: webhook-certs
               mountPath: /etc/webhook/certs
