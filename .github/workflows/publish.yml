@@ -1,7 +1,10 @@
 name: "Release Build"
+
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
+
 env:
   CONTAINER_REGISTRY: ghcr.io/securecodebox
 jobs:
@@ -11,13 +14,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write # needed for signing the images with GitHub OIDC Token
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
 
       - id: image-metadata
         name: Container Image Metadata
@@ -25,8 +24,7 @@ jobs:
         with:
           images: ${{ env.CONTAINER_REGISTRY }}/scan-deduplicator/scan-deduplicator
           tags: |
-            type=semver,pattern={{raw}}
-
+            latest
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -48,9 +46,3 @@ jobs:
           push: true
           tags: ${{ steps.image-metadata.outputs.tags }}
           labels: ${{ steps.image-metadata.outputs.labels }}
-
-      - name: Sign the images with GitHub OIDC Token
-        env:
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-          TAGS: ${{ steps.image-metadata.outputs.tags }}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
