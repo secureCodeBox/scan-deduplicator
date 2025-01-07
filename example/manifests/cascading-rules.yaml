@@ -1,0 +1,51 @@
+apiVersion: "cascading.securecodebox.io/v1"
+kind: CascadingRule
+metadata:
+  name: "nmap-hostscan"
+  labels:
+    securecodebox.io/invasive: non-invasive
+    securecodebox.io/intensive: light
+spec:
+  scanAnnotations:
+    scan-deduplicator.securecodebox.io/min-time-interval: 4h
+  matches:
+    anyOf:
+      - category: "Host"
+  scanSpec:
+    scanType: "nmap"
+    parameters:
+      # Treat all hosts as online -- skip host discovery
+      - "-Pn"
+      # Target host of the finding and start a nmap scan
+      - "{{$.hostOrIP}}"
+---
+apiVersion: "cascading.securecodebox.io/v1"
+kind: CascadingRule
+metadata:
+  name: "nuclei-subdomain-scan-light-http"
+  labels:
+    securecodebox.io/invasive: non-invasive
+    securecodebox.io/intensive: light
+spec:
+  scanAnnotations:
+    scan-deduplicator.securecodebox.io/min-time-interval: 24h
+  matches:
+    anyOf:
+      - category: "Open Port"
+        attributes:
+          port: 80
+          state: open
+      - category: "Open Port"
+        attributes:
+          service: "http"
+          state: open
+      - category: "Open Port"
+        attributes:
+          service: "http-*"
+          state: open
+  scanSpec:
+    scanType: "nuclei"
+    parameters:
+      # Target domain name of the finding and start a nuclei scan
+      - "-u"
+      - "http://{{$.hostOrIP}}:{{attributes.port}}"

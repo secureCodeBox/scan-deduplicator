@@ -1,0 +1,14 @@
+apiVersion: "execution.securecodebox.io/v1"
+kind: ScheduledScan
+metadata:
+  name: "nmap-fritz-box"
+spec:
+  interval: 5m
+  scanSpec:
+    scanType: "nmap"
+    parameters:
+      # only do host discovery, no port scan
+      - -sn
+      # default ip of fritz box
+      - "192.168.178.1"
+    cascades: {}
