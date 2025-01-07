@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Install the Operator & CRD's into the `securecodebox-system` namespace
+helm --namespace securecodebox-system upgrade --install --create-namespace securecodebox-operator oci://ghcr.io/securecodebox/helm/operator
+
+# Create a namespace for the scans to run in
+kubectl create namespace scans || true
+
 echo "Setting up secureCodeBox ScanTypes and Cascading Scans Hook"
 
 helm --namespace scans upgrade --install nmap oci://ghcr.io/securecodebox/helm/nmap
