@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: scan-deduplicator-validator
-          image: docker.io/j12934/scan-deduplicator:latest
+          image: ghcr.io/securecodebox/scan-deduplicator/scan-deduplicator:latest
           imagePullPolicy: Always
           command:
             - /scan-deduplicator
