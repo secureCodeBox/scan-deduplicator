@@ -73,9 +73,18 @@ spec:
     cascades: {}
 ```
 
+## How it works
+
+The scan-deduplicator works via a [validating webhook](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) configuration in Kubernetes.
+Before a scan is created in the cluster, kubernetes reaches out to the scan-deduplicator via a http request.
+The scan-deduplicator then checks if the scan was already executed recently.
+If it was executed recently, the webhook marks the scan as invalid and kubernetes will not create the scan.
+
 ## Deployment (WIP)
 
 Deploys the scan-deduplicator, including a [valkey](https://valkey.io/) instance for a persistent cache.
+
+> NOTE: This requires the cluster to have [cert-manger](https://cert-manager.io/) installed in the cluster to generate a tls certificate for the validating webhook.
 
 ```bash
 kubectl create namespace scan-deduplicator || true
