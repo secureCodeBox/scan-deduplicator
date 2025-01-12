@@ -8,6 +8,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slok/kubewebhook/v2 v2.7.0
 	github.com/stretchr/testify v1.9.0
+	github.com/valkey-io/valkey-go v1.0.52
 	k8s.io/apimachinery v0.32.0
 )
 

@@ -18,11 +18,17 @@ spec:
       containers:
         - name: scan-deduplicator-validator
           image: ghcr.io/securecodebox/scan-deduplicator/scan-deduplicator:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command:
             - /scan-deduplicator
             - -tls-cert-file=/etc/webhook/certs/tls.crt
             - -tls-key-file=/etc/webhook/certs/tls.key
+          env:
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: scan-deduplicator-cache-credentials
+                  key: password
           resources:
             limits:
               memory: "512Mi"

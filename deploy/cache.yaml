@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: valkey
+  name: scan-deduplicator-cache
   labels:
-    app: valkey
+    app: scan-deduplicator-cache
 spec:
-  serviceName: "valkey"
+  serviceName: "scan-deduplicator-cache"
   replicas: 1
   selector:
     matchLabels:
-      app: valkey
+      app: scan-deduplicator-cache
   template:
     metadata:
       labels:
-        app: valkey
+        app: scan-deduplicator-cache
     spec:
       containers:
         - name: valkey
@@ -74,10 +74,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: valkey-service
+  name: scan-deduplicator-cache
 spec:
   selector:
-    app: valkey
+    app: scan-deduplicator-cache
   ports:
     - protocol: TCP
       port: 6379
